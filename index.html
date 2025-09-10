@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <title>Portal Geoespacial • SEPLAN PI</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="light dark">
+  <style>
+    :root{
+      --bg:#f6f7fb; --card:#fff; --txt:#1f2937; --muted:#64748b;
+      --brand:#0ea5e9; --brand-2:#2563eb; --ring: rgba(37,99,235,.25);
+      --radius:16px; --shadow:0 10px 30px rgba(2,6,23,.08);
+      --gap:16px; --gap-lg:22px; --nav-h:64px;
+      --tab:#e2e8f0; --tab-active:#ffffff; --tab-brd: #cbd5e1;
+    }
+    @media (prefers-color-scheme: dark){
+      :root{
+        --bg:#0b1220; --card:#0f172a; --txt:#e5e7eb; --muted:#94a3b8;
+        --brand:#22d3ee; --brand-2:#38bdf8; --ring: rgba(56,189,248,.28);
+        --shadow:0 10px 30px rgba(0,0,0,.45);
+        --tab:#0f172a; --tab-active:#111827; --tab-brd:#1f2937;
+      }
+    }
+    *{ box-sizing:border-box }
+    html,body{ height:100% }
+    body{
+      margin:0; background:var(--bg); color:var(--txt);
+      font: 400 15px/1.45 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Ubuntu, "Noto Sans", Arial;
+    }
+
+    /* Topbar */
+    .nav{
+      position: sticky; top:0; z-index:50; height:var(--nav-h);
+      backdrop-filter: blur(8px);
+      background: color-mix(in oklab, var(--bg) 80%, transparent);
+      border-bottom: 1px solid color-mix(in oklab, var(--muted) 20%, transparent);
+      display:flex; align-items:center; justify-content:space-between;
+      padding: 0 clamp(12px, 3vw, 28px);
+    }
+    .brand{ display:flex; align-items:center; gap:10px; font-weight:700; letter-spacing:.2px; }
+    .brand .badge{
+      width:36px; height:36px; border-radius:10px;
+      background: radial-gradient(120% 120% at 20% 15%, var(--brand) 0 40%, var(--brand-2) 60% 100%);
+      box-shadow: inset 0 0 0 2px rgba(255,255,255,.12), 0 6px 18px var(--ring);
+    }
+    .brand small{ display:block; color:var(--muted); font-weight:600; letter-spacing:.4px; }
+
+    .actions{ display:flex; align-items:center; gap:10px; }
+    .search{ position:relative; min-width:240px }
+    .search input{
+      width:100%; height:40px; border-radius:999px;
+      border:1px solid color-mix(in oklab, var(--muted) 22%, transparent);
+      padding:0 40px 0 14px; background:var(--card); color:var(--txt); box-shadow:var(--shadow); outline:none;
+    }
+    .search input:focus{ border-color:transparent; box-shadow: 0 0 0 4px var(--ring) }
+    .search .icon{ position:absolute; right:12px; top:50%; transform:translateY(-50%); opacity:.7 }
+    .toggle{
+      height:40px; padding:0 14px; border-radius:10px; border:1px solid color-mix(in oklab, var(--muted) 22%, transparent);
+      background:var(--card); color:var(--txt); cursor:pointer; font-weight:600; display:flex; align-items:center; gap:8px;
+    }
+
+    .hero{
+      max-width:1200px; margin: clamp(10px, 3vw, 22px) auto 8px;
+      padding: 0 clamp(12px, 3vw, 28px);
+    }
+    .hero h1{ margin:8px 0 6px; font-size: clamp(22px, 3.2vw, 30px) }
+    .hero p{ margin:0; color:var(--muted) }
+
+    /* Tabs */
+    .tabs{
+      max-width:1200px; margin: 0 auto 10px; padding: 0 clamp(12px, 3vw, 28px);
+      display:flex; gap:8px; flex-wrap:wrap;
+    }
+    .tab{
+      appearance:none; border:1px solid var(--tab-brd); background:var(--tab);
+      padding:8px 12px; border-radius:999px; cursor:pointer; color:var(--txt); font-weight:600;
+    }
+    .tab[aria-selected="true"]{
+      background: var(--tab-active);
+      box-shadow: 0 4px 16px rgba(2,6,23,.08), 0 0 0 3px var(--ring);
+      border-color: color-mix(in oklab, var(--brand-2) 30%, var(--tab-brd));
+    }
+
+    /* Grid */
+    .grid{
+      max-width:1200px; margin: 0 auto 28px;
+      padding: 0 clamp(12px, 3vw, 28px);
+      display:grid; gap: var(--gap-lg);
+      grid-template-columns: repeat(12, 1fr);
+    }
+    .col-4{ grid-column: span 4 }
+    .col-6{ grid-column: span 6 }
+    .col-12{ grid-column: span 12 }
+    @media (max-width:1000px){ .col-4{ grid-column: span 6 } .col-6{ grid-column: span 12 } }
+    @media (max-width:700px){ .col-4,.col-6{ grid-column: span 12 } }
+
+    .card{
+      background:var(--card); border-radius: var(--radius); box-shadow: var(--shadow);
+      border:1px solid color-mix(in oklab, var(--muted) 14%, transparent);
+      overflow:hidden; display:flex; flex-direction:column; min-height:360px;
+      transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+    }
+    .card:hover{ transform: translateY(-2px); box-shadow: 0 16px 40px rgba(2,6,23,.12); border-color: color-mix(in oklab, var(--brand-2) 30%, transparent) }
+    .card-header{
+      padding:14px 16px; display:flex; align-items:center; justify-content:space-between; gap:12px;
+      border-bottom:1px dashed color-mix(in oklab, var(--muted) 22%, transparent);
+    }
+    .title{ display:flex; flex-direction:column; gap:4px }
+    .title h3{ margin:0; font-size: clamp(16px, 2.2vw, 18px) }
+    .title span{ color:var(--muted); font-size:13px }
+
+    .actions-row{ display:flex; gap:8px; align-items:center }
+    .btn{
+      height:36px; padding:0 12px; border-radius:10px; border:1px solid color-mix(in oklab, var(--muted) 22%, transparent);
+      background: linear-gradient(180deg, color-mix(in oklab, var(--brand) 20%, var(--card)) 0%, var(--card) 100%);
+      color:var(--txt); cursor:pointer; font-weight:600; display:flex; align-items:center; gap:8px;
+    }
+    .btn[disabled]{ opacity:.6; cursor:not-allowed }
+    .btn.primary{
+      background: linear-gradient(180deg, var(--brand) 0%, var(--brand-2) 100%);
+      color:#fff; border-color: transparent; box-shadow: 0 6px 18px var(--ring);
+    }
+
+    /* Frames (responsivo) */
+    .frame-wrap{
+      position: relative; flex: 1 1 auto; aspect-ratio: 16 / 9;
+      min-height: clamp(240px, 45vh, 520px); background:#0b1220;
+      border-radius: calc(var(--radius) - 2px); overflow: hidden;
+    }
+    .frame-wrap.tall{ aspect-ratio: 16 / 10; min-height: clamp(300px, 60vh, 720px) }
+    iframe{ position:absolute; inset:0; width:100%; height:100%; border:0; background:#fff }
+    .frame-fallback{ position:absolute; inset:0; display:none; align-items:center; justify-content:center; text-align:center; padding:22px; color:var(--muted) }
+
+    /* Config modal leve */
+    .cfg{
+      display:none; gap:8px; padding:10px 12px; background: color-mix(in oklab, var(--card) 92%, transparent);
+      border-top:1px dashed color-mix(in oklab, var(--muted) 22%, transparent);
+    }
+    .cfg input{ flex:1; height:36px; border-radius:8px; border:1px solid color-mix(in oklab, var(--muted) 22%, transparent); padding:0 10px; background:var(--card); color:var(--txt) }
+    .cfg .mini{ height:36px; border-radius:8px; padding:0 10px; border:1px solid color-mix(in oklab, var(--muted) 22%, transparent); background:var(--card); color:var(--txt); font-weight:600; cursor:pointer }
+    .cfg .mini.primary{ background: linear-gradient(180deg, var(--brand) 0%, var(--brand-2) 100%); color:#fff; border-color: transparent }
+
+    @media (max-width:700px){
+      .card{ min-height:auto }
+      .frame-wrap{ aspect-ratio: 4 / 3; min-height: clamp(260px, 55vh, 560px) }
+      .frame-wrap.tall{ aspect-ratio: 3 / 4; min-height: clamp(340px, 68vh, 760px) }
+      .tabs{ gap:6px }
+      .tab{ padding:7px 10px; font-size:14px }
+    }
+
+    /* Footer */
+    .footer{
+      max-width:1200px; margin: 16px auto 36px; padding: 0 clamp(12px, 3vw, 28px);
+      color:var(--muted); font-size:13px; display:flex; flex-wrap:wrap; gap:10px; align-items:center; justify-content:space-between;
+    }
+    .chips{ display:flex; gap:8px; flex-wrap:wrap }
+    .chip{ padding:6px 10px; border-radius:999px; border:1px solid color-mix(in oklab, var(--muted) 24%, transparent); background:var(--card); color:var(--muted) }
+
+    /* Fallback para navegadores sem aspect-ratio */
+    @supports not (aspect-ratio: 1 / 1){
+      .frame-wrap{ padding-top:56.25% } .frame-wrap.tall{ padding-top:62.5% }
+      .frame-wrap > iframe{ position:absolute; inset:0; height:100% }
+    }
+  </style>
+</head>
+<body>
+  <header class="nav">
+    <div class="brand" title="SEPLAN Piauí">
+      <div class="badge" aria-hidden="true"></div>
+      <div>
+        SEPLAN • Piauí
+        <small>Portal Geoespacial</small>
+      </div>
+    </div>
+    <div class="actions">
+      <div class="search">
+        <input id="q" type="search" placeholder="Buscar mapas (ex.: hidro, energia, turismo, mineração)"/>
+        <svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="m21 21-4.2-4.2M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15Z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </div>
+      <button id="mode" class="toggle" type="button" title="Alternar modo"><span aria-hidden="true">🌓</span> Modo</button>
+    </div>
+  </header>
+
+  <section class="hero">
+    <h1>Mapas temáticos do Piauí</h1>
+    <p>Use as <b>abas</b> para navegar por temas. Clique em <b>Tela cheia</b> para imersão ou <b>Abrir em aba</b> para ir ao site original.</p>
+  </section>
+
+  <!-- ABAS -->
+  <nav class="tabs" role="tablist" aria-label="Categorias">
+    <button class="tab" role="tab" data-tab="todos" aria-selected="true">Todos</button>
+    <button class="tab" role="tab" data-tab="hidro">Hidrografia</button>
+    <button class="tab" role="tab" data-tab="energia">Energia</button>
+    <button class="tab" role="tab" data-tab="piaui">Piauí</button>
+    <button class="tab" role="tab" data-tab="meioambiente">Meio Ambiente</button>
+    <button class="tab" role="tab" data-tab="turismo">Turismo</button>
+    <button class="tab" role="tab" data-tab="mineracao">Mineração</button>
+    <button class="tab" role="tab" data-tab="outros">Outros</button>
+  </nav>
+
+  <main class="grid" id="grid">
+    <!-- HIDROGRAFIA -->
+    <article class="card col-6" data-tags="hidrografia agua rios massas piaui" data-cat="hidro">
+      <div class="card-header">
+        <div class="title">
+          <h3>Hidrografia</h3>
+          <span>Rios e massas d’água • Camadas temáticas</span>
+        </div>
+        <div class="actions-row">
+          <a class="btn open" href="https://ccae-cordenacaocartografia.github.io/HIDROGRAFIA/" target="_blank" rel="noopener">Abrir em aba</a>
+          <button class="btn primary fs" data-fullscreen="#hidro" type="button">Tela cheia</button>
+        </div>
+      </div>
+      <div class="frame-wrap">
+        <iframe id="hidro" src="https://ccae-cordenacaocartografia.github.io/HIDROGRAFIA/" title="Mapa Hidrografia" allowfullscreen allow="fullscreen"></iframe>
+        <div class="frame-fallback">Não foi possível carregar o mapa incorporado. <br/>Use “Abrir em aba”.</div>
+      </div>
+      <div class="note">Fonte: CCAE/SEPLAN-PI • Conteúdo hospedado no GitHub Pages.</div>
+    </article>
+
+    <!-- ENERGIA -->
+    <article class="card col-6" data-tags="energia eolica solar hidrica biomassa termica" data-cat="energia">
+      <div class="card-header">
+        <div class="title">
+          <h3>Energia</h3>
+          <span>Empreendimentos e infraestrutura energética</span>
+        </div>
+        <div class="actions-row">
+          <a class="btn open" href="https://ccae-cordenacaocartografia.github.io/Energia/" target="_blank" rel="noopener">Abrir em aba</a>
+          <button class="btn primary fs" data-fullscreen="#energia" type="button">Tela cheia</button>
+        </div>
+      </div>
+      <div class="frame-wrap">
+        <iframe id="energia" src="https://ccae-cordenacaocartografia.github.io/Energia/" title="Mapa Energia" allowfullscreen allow="fullscreen"></iframe>
+        <div class="frame-fallback">Não foi possível carregar o mapa incorporado. <br/>Use “Abrir em aba”.</div>
+      </div>
+      <div class="note">Fonte: CCAE/SEPLAN-PI • Camadas de geração e apoio.</div>
+    </article>
+
+    <!-- PIAUÍ GERAL -->
+    <article class="card col-12" data-tags="piaui geral territorios municipios biomas" data-cat="piaui">
+      <div class="card-header">
+        <div class="title">
+          <h3>Piauí • Visão Geral</h3>
+          <span>Territórios, municípios, biomas e máscaras</span>
+        </div>
+        <div class="actions-row">
+          <a class="btn open" href="https://ccae-cordenacaocartografia.github.io/PiauiGeoMap/" target="_blank" rel="noopener">Abrir em aba</a>
+          <button class="btn primary fs" data-fullscreen="#piaui" type="button">Tela cheia</button>
+        </div>
+      </div>
+      <div class="frame-wrap tall">
+        <iframe id="piaui" src="https://ccae-cordenacaocartografia.github.io/PiauiGeoMap/" title="Mapa Piauí" allowfullscreen allow="fullscreen"></iframe>
+        <div class="frame-fallback">Não foi possível carregar o mapa incorporado. <br/>Use “Abrir em aba”.</div>
+      </div>
+      <div class="note">Fonte: CCAE/SEPLAN-PI • Visualização integrada do estado.</div>
+    </article>
+
+    <!-- MEIO AMBIENTE (CONFIGURÁVEL) -->
+    <article class="card col-6" data-tags="meio ambiente licenciamento unidades conservação vegetação desmatamento queimadas" data-cat="meioambiente" data-key="meioambiente">
+      <div class="card-header">
+        <div class="title">
+          <h3>Meio Ambiente</h3>
+          <span>Licenciamento, UCs, cobertura vegetal, queimadas</span>
+        </div>
+        <div class="actions-row">
+          <a class="btn open" href="#" target="_blank" rel="noopener" disabled>Abrir em aba</a>
+          <button class="btn primary fs" data-fullscreen="#map-meio" type="button" disabled>Tela cheia</button>
+          <button class="btn cfg-toggle" type="button">Configurar link</button>
+        </div>
+      </div>
+      <div class="cfg" aria-hidden="true">
+        <input type="url" placeholder="Cole o link do mapa (https://...)" />
+        <button class="mini primary cfg-save" type="button">Salvar</button>
+        <button class="mini cfg-cancel" type="button">Cancelar</button>
+      </div>
+      <div class="frame-wrap">
+        <iframe id="map-meio" src="about:blank" title="Mapa Meio Ambiente" allowfullscreen allow="fullscreen"></iframe>
+        <div class="frame-fallback">Defina o link do mapa em “Configurar link”.</div>
+      </div>
+      <div class="note">Defina um endereço de mapa público (ex.: portal WMS/Leaflet) para incorporar aqui.</div>
+    </article>
+
+    <!-- TURISMO (CONFIGURÁVEL) -->
+    <article class="card col-6" data-tags="turismo atrativos culturais naturais roteiros hospedagem transporte" data-cat="turismo" data-key="turismo">
+      <div class="card-header">
+        <div class="title">
+          <h3>Turismo</h3>
+          <span>Atrativos, rotas, serviços e infraestrutura turística</span>
+        </div>
+        <div class="actions-row">
+          <a class="btn open" href="#" target="_blank" rel="noopener" disabled>Abrir em aba</a>
+          <button class="btn primary fs" data-fullscreen="#map-tur" type="button" disabled>Tela cheia</button>
+          <button class="btn cfg-toggle" type="button">Configurar link</button>
+        </div>
+      </div>
+      <div class="cfg" aria-hidden="true">
+        <input type="url" placeholder="Cole o link do mapa (https://...)" />
+        <button class="mini primary cfg-save" type="button">Salvar</button>
+        <button class="mini cfg-cancel" type="button">Cancelar</button>
+      </div>
+      <div class="frame-wrap">
+        <iframe id="map-tur" src="about:blank" title="Mapa Turismo" allowfullscreen allow="fullscreen"></iframe>
+        <div class="frame-fallback">Defina o link do mapa em “Configurar link”.</div>
+      </div>
+      <div class="note">Indique um mapa de turismo público para exibir aqui.</div>
+    </article>
+
+    <!-- MINERAÇÃO (CONFIGURÁVEL) -->
+    <article class="card col-12" data-tags="mineracao lavra pesquisa direitos minerarios DNPM ANM jazidas garimpo" data-cat="mineracao" data-key="mineracao">
+      <div class="card-header">
+        <div class="title">
+          <h3>Mineração</h3>
+          <span>Direitos minerários, áreas de pesquisa e lavra</span>
+        </div>
+        <div class="actions-row">
+          <a class="btn open" href="#" target="_blank" rel="noopener" disabled>Abrir em aba</a>
+          <button class="btn primary fs" data-fullscreen="#map-min" type="button" disabled>Tela cheia</button>
+          <button class="btn cfg-toggle" type="button">Configurar link</button>
+        </div>
+      </div>
+      <div class="cfg" aria-hidden="true">
+        <input type="url" placeholder="Cole o link do mapa (https://...)" />
+        <button class="mini primary cfg-save" type="button">Salvar</button>
+        <button class="mini cfg-cancel" type="button">Cancelar</button>
+      </div>
+      <div class="frame-wrap tall">
+        <iframe id="map-min" src="about:blank" title="Mapa Mineração" allowfullscreen allow="fullscreen"></iframe>
+        <div class="frame-fallback">Defina o link do mapa em “Configurar link”.</div>
+      </div>
+      <div class="note">Após salvar o link, você pode abrir em tela cheia ou em nova aba.</div>
+    </article>
+
+    <!-- OUTROS (exemplo) -->
+    <article class="card col-12" data-tags="outros exemplo modelo placeholder" data-cat="outros" data-key="outros-ex">
+      <div class="card-header">
+        <div class="title">
+          <h3>Outros • Exemplo</h3>
+          <span>Use este modelo para incorporar novos temas</span>
+        </div>
+        <div class="actions-row">
+          <a class="btn open" href="#" target="_blank" rel="noopener" disabled>Abrir em aba</a>
+          <button class="btn primary fs" data-fullscreen="#map-out" type="button" disabled>Tela cheia</button>
+          <button class="btn cfg-toggle" type="button">Configurar link</button>
+        </div>
+      </div>
+      <div class="cfg" aria-hidden="true">
+        <input type="url" placeholder="Cole o link do mapa (https://...)" />
+        <button class="mini primary cfg-save" type="button">Salvar</button>
+        <button class="mini cfg-cancel" type="button">Cancelar</button>
+      </div>
+      <div class="frame-wrap">
+        <iframe id="map-out" src="about:blank" title="Mapa Outros" allowfullscreen allow="fullscreen"></iframe>
+        <div class="frame-fallback">Defina o link do mapa em “Configurar link”.</div>
+      </div>
+      <div class="note">Você pode duplicar este cartão e mudar o atributo <code>data-cat</code> para criar novos temas.</div>
+    </article>
+  </main>
+
+  <footer class="footer">
+    <div>© <span id="yr"></span> SEPLAN-PI • Coordenação de Cartografia e Análise Espacial (CCAE)</div>
+    <div class="chips">
+      <span class="chip">Leaflet</span>
+      <span class="chip">GeoJSON</span>
+      <span class="chip">GitHub Pages</span>
+    </div>
+  </footer>
+
+  <script>
+    // Ano
+    document.getElementById('yr').textContent = new Date().getFullYear();
+
+    // Busca + filtro por aba
+    const q = document.getElementById('q');
+    const cards = [...document.querySelectorAll('.card')];
+    let currentTab = 'todos';
+
+    function applyFilters(){
+      const v = (q.value || '').trim().toLowerCase();
+      cards.forEach(c=>{
+        const tags = (c.getAttribute('data-tags') || '').toLowerCase();
+        const title = c.querySelector('h3')?.textContent.toLowerCase() || '';
+        const cat = c.getAttribute('data-cat') || 'outros';
+        const matchText = !v || tags.includes(v) || title.includes(v);
+        const matchTab  = currentTab === 'todos' || cat === currentTab;
+        c.style.display = (matchText && matchTab) ? '' : 'none';
+      });
+    }
+    q.addEventListener('input', applyFilters);
+
+    // Tabs
+    const tabBtns = [...document.querySelectorAll('.tab')];
+    function setTab(tab){
+      currentTab = tab;
+      tabBtns.forEach(b=> b.setAttribute('aria-selected', b.dataset.tab === tab ? 'true' : 'false'));
+      // opcional: hash para compartilhamento
+      history.replaceState(null, '', '#tab=' + tab);
+      applyFilters();
+    }
+    tabBtns.forEach(b=> b.addEventListener('click', ()=> setTab(b.dataset.tab)));
+    // carrega tab do hash se houver
+    (function initTabFromHash(){
+      const m = location.hash.match(/tab=([a-z0-9\-]+)/i);
+      if(m && document.querySelector(`.tab[data-tab="${m[1]}"]`)) setTab(m[1]);
+      else applyFilters();
+    })();
+
+    // Fullscreen
+    function goFullscreen(sel){
+      const el = document.querySelector(sel);
+      if (!el) return;
+      const req = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen || el.msRequestFullscreen;
+      if (req) req.call(el); else window.open(el.src, '_blank', 'noopener');
+    }
+    document.querySelectorAll('.fs[data-fullscreen]').forEach(btn=>{
+      btn.addEventListener('click', () => goFullscreen(btn.getAttribute('data-fullscreen')));
+    });
+
+    // Fallback de frames
+    document.querySelectorAll('.frame-wrap').forEach(wrap=>{
+      const iframe = wrap.querySelector('iframe');
+      const fb = wrap.querySelector('.frame-fallback');
+      let done = false;
+      const ok = () => { done = true; };
+      iframe.addEventListener('load', ok);
+      setTimeout(()=>{ if(!done && fb){ fb.style.display='flex'; } }, 9000);
+    });
+
+    // Alternar modo claro/escuro (força reflow; respeita prefers-color-scheme quando desligado)
+    document.getElementById('mode').addEventListener('click', ()=>{
+      document.documentElement.classList.toggle('force-light');
+      if(document.documentElement.classList.contains('force-light')){
+        document.documentElement.style.colorScheme = 'light';
+      } else {
+        document.documentElement.style.colorScheme = 'dark';
+      }
+      if(!document.documentElement.classList.contains('force-light')){
+        document.documentElement.style.colorScheme = '';
+      }
+    });
+
+    // ====== Cartões configuráveis (Meio Ambiente, Turismo, Mineração, Outros) ======
+    const STORAGE_KEY = 'portal_geo_links_v1';
+
+    function loadLinks(){
+      try{ return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); }
+      catch(_){ return {}; }
+    }
+    function saveLinks(map){ localStorage.setItem(STORAGE_KEY, JSON.stringify(map)); }
+
+    function setupConfigurableCards(){
+      const links = loadLinks();
+      document.querySelectorAll('.card[data-key]').forEach(card=>{
+        const key = card.getAttribute('data-key');
+        const cfg = card.querySelector('.cfg');
+        const input = cfg.querySelector('input');
+        const btnSave = cfg.querySelector('.cfg-save');
+        const btnCancel = cfg.querySelector('.cfg-cancel');
+        const btnToggle = card.querySelector('.cfg-toggle');
+        const iframe = card.querySelector('iframe');
+        const btnOpen = card.querySelector('.open');
+        const btnFS = card.querySelector('.fs');
+
+        function apply(url){
+          const valid = !!url && /^https?:\/\//i.test(url);
+          if(valid){
+            iframe.src = url;
+            btnOpen.href = url;
+            btnOpen.removeAttribute('disabled');
+            btnFS.removeAttribute('disabled');
+          } else {
+            iframe.src = 'about:blank';
+            btnOpen.href = '#';
+            btnOpen.setAttribute('disabled','');
+            btnFS.setAttribute('disabled','');
+          }
+        }
+
+        // estado inicial
+        const saved = links[key];
+        if(saved){ input.value = saved; apply(saved); } else { apply(null); }
+
+        btnToggle.addEventListener('click', ()=>{ cfg.style.display = cfg.style.display === 'flex' ? 'none' : 'flex'; cfg.style.display = 'flex'; input.focus(); });
+        btnCancel.addEventListener('click', ()=>{ cfg.style.display = 'none'; input.value = links[key] || ''; });
+        btnSave.addEventListener('click', ()=>{
+          const url = input.value.trim();
+          links[key] = url;
+          saveLinks(links);
+          apply(url);
+          cfg.style.display = 'none';
+        });
+        input.addEventListener('keydown', (e)=>{ if(e.key === 'Enter'){ e.preventDefault(); btnSave.click(); } });
+      });
+    }
+    setupConfigurableCards();
+
+    // Restaura aba após refresh se hash existir
+    window.addEventListener('hashchange', ()=> {
+      const m = location.hash.match(/tab=([a-z0-9\-]+)/i);
+      if(m && document.querySelector(`.tab[data-tab="${m[1]}"]`)) setTab(m[1]);
+    });
+  </script>
+</body>
+</html>
