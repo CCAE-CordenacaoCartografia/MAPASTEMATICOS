@@ -11,14 +11,12 @@
       --brand:#0ea5e9; --brand-2:#2563eb; --ring: rgba(37,99,235,.25);
       --radius:16px; --shadow:0 10px 30px rgba(2,6,23,.08);
       --gap:16px; --gap-lg:22px; --nav-h:64px;
-      --tab:#e2e8f0; --tab-active:#ffffff; --tab-brd: #cbd5e1;
     }
     @media (prefers-color-scheme: dark){
       :root{
         --bg:#0b1220; --card:#0f172a; --txt:#e5e7eb; --muted:#94a3b8;
         --brand:#22d3ee; --brand-2:#38bdf8; --ring: rgba(56,189,248,.28);
         --shadow:0 10px 30px rgba(0,0,0,.45);
-        --tab:#0f172a; --tab-active:#111827; --tab-brd:#1f2937;
       }
     }
     *{ box-sizing:border-box }
@@ -66,21 +64,6 @@
     .hero h1{ margin:8px 0 6px; font-size: clamp(22px, 3.2vw, 30px) }
     .hero p{ margin:0; color:var(--muted) }
 
-    /* Tabs */
-    .tabs{
-      max-width:1200px; margin: 0 auto 10px; padding: 0 clamp(12px, 3vw, 28px);
-      display:flex; gap:8px; flex-wrap:wrap;
-    }
-    .tab{
-      appearance:none; border:1px solid var(--tab-brd); background:var(--tab);
-      padding:8px 12px; border-radius:999px; cursor:pointer; color:var(--txt); font-weight:600;
-    }
-    .tab[aria-selected="true"]{
-      background: var(--tab-active);
-      box-shadow: 0 4px 16px rgba(2,6,23,.08), 0 0 0 3px var(--ring);
-      border-color: color-mix(in oklab, var(--brand-2) 30%, var(--tab-brd));
-    }
-
     /* Grid */
     .grid{
       max-width:1200px; margin: 0 auto 28px;
@@ -122,14 +105,22 @@
     }
 
     /* Frames (responsivo) */
-    .frame-wrap{
-      position: relative; flex: 1 1 auto; aspect-ratio: 16 / 9;
-      min-height: clamp(240px, 45vh, 520px); background:#0b1220;
-      border-radius: calc(var(--radius) - 2px); overflow: hidden;
-    }
-    .frame-wrap.tall{ aspect-ratio: 16 / 10; min-height: clamp(300px, 60vh, 720px) }
-    iframe{ position:absolute; inset:0; width:100%; height:100%; border:0; background:#fff }
-    .frame-fallback{ position:absolute; inset:0; display:none; align-items:center; justify-content:center; text-align:center; padding:22px; color:var(--muted) }
+  .frame-wrap{ position: relative; flex:1 1 auto; aspect-ratio:16/9;
+  min-height: clamp(240px, 45vh, 520px); background:#0b1220; border-radius: calc(var(--radius) - 2px); overflow:hidden;
+}
+.frame-wrap.tall{ aspect-ratio:16/10; min-height: clamp(300px, 60vh, 720px) }
+
+.frame-wrap > iframe{
+  position:absolute; inset:0; width:100%; height:100%; border:0; background:#fff; z-index:1;
+}
+
+/* Fallback nunca deve capturar cliques quando escondido */
+.frame-fallback{
+  position:absolute; inset:0; display:none;
+  align-items:center; justify-content:center; text-align:center; padding:22px; color:var(--muted);
+  z-index:2;
+  pointer-events:none; /* <- chave para não bloquear o clique quando hidden */
+}
 
     /* Config modal leve */
     .cfg{
@@ -144,8 +135,6 @@
       .card{ min-height:auto }
       .frame-wrap{ aspect-ratio: 4 / 3; min-height: clamp(260px, 55vh, 560px) }
       .frame-wrap.tall{ aspect-ratio: 3 / 4; min-height: clamp(340px, 68vh, 760px) }
-      .tabs{ gap:6px }
-      .tab{ padding:7px 10px; font-size:14px }
     }
 
     /* Footer */
@@ -177,30 +166,18 @@
         <input id="q" type="search" placeholder="Buscar mapas (ex.: hidro, energia, turismo, mineração)"/>
         <svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="m21 21-4.2-4.2M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15Z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
       </div>
-      <button id="mode" class="toggle" type="button" title="Alternar modo"><span aria-hidden="true">🌓</span> Modo</button>
-    </div>
+          </div>
   </header>
 
   <section class="hero">
     <h1>Mapas temáticos do Piauí</h1>
-    <p>Use as <b>abas</b> para navegar por temas. Clique em <b>Tela cheia</b> para imersão ou <b>Abrir em aba</b> para ir ao site original.</p>
+    <p>Clique em <b>Tela cheia</b> para imersão ou <b>Abrir em aba</b> para ir ao site original.</p>
   </section>
 
-  <!-- ABAS -->
-  <nav class="tabs" role="tablist" aria-label="Categorias">
-    <button class="tab" role="tab" data-tab="todos" aria-selected="true">Todos</button>
-    <button class="tab" role="tab" data-tab="hidro">Hidrografia</button>
-    <button class="tab" role="tab" data-tab="energia">Energia</button>
-    <button class="tab" role="tab" data-tab="piaui">Piauí</button>
-    <button class="tab" role="tab" data-tab="meioambiente">Meio Ambiente</button>
-    <button class="tab" role="tab" data-tab="turismo">Turismo</button>
-    <button class="tab" role="tab" data-tab="mineracao">Mineração</button>
-    <button class="tab" role="tab" data-tab="outros">Outros</button>
-  </nav>
-
+  <!-- QUADROS / CARDS -->
   <main class="grid" id="grid">
     <!-- HIDROGRAFIA -->
-    <article class="card col-6" data-tags="hidrografia agua rios massas piaui" data-cat="hidro">
+    <article class="card col-6" data-tags="hidrografia agua rios massas piaui">
       <div class="card-header">
         <div class="title">
           <h3>Hidrografia</h3>
@@ -219,7 +196,7 @@
     </article>
 
     <!-- ENERGIA -->
-    <article class="card col-6" data-tags="energia eolica solar hidrica biomassa termica" data-cat="energia">
+    <article class="card col-6" data-tags="energia eolica solar hidrica biomassa termica">
       <div class="card-header">
         <div class="title">
           <h3>Energia</h3>
@@ -238,7 +215,7 @@
     </article>
 
     <!-- PIAUÍ GERAL -->
-    <article class="card col-12" data-tags="piaui geral territorios municipios biomas" data-cat="piaui">
+    <article class="card col-12" data-tags="piaui geral territorios municipios biomas">
       <div class="card-header">
         <div class="title">
           <h3>Piauí • Visão Geral</h3>
@@ -257,7 +234,7 @@
     </article>
 
     <!-- MEIO AMBIENTE (CONFIGURÁVEL) -->
-    <article class="card col-6" data-tags="meio ambiente licenciamento unidades conservação vegetação desmatamento queimadas" data-cat="meioambiente" data-key="meioambiente">
+    <article class="card col-6" data-tags="meio ambiente licenciamento unidades conservação vegetação desmatamento queimadas" data-key="meioambiente">
       <div class="card-header">
         <div class="title">
           <h3>Meio Ambiente</h3>
@@ -282,7 +259,7 @@
     </article>
 
     <!-- TURISMO (CONFIGURÁVEL) -->
-    <article class="card col-6" data-tags="turismo atrativos culturais naturais roteiros hospedagem transporte" data-cat="turismo" data-key="turismo">
+    <article class="card col-6" data-tags="turismo atrativos culturais naturais roteiros hospedagem transporte" data-key="turismo">
       <div class="card-header">
         <div class="title">
           <h3>Turismo</h3>
@@ -307,7 +284,7 @@
     </article>
 
     <!-- MINERAÇÃO (CONFIGURÁVEL) -->
-    <article class="card col-12" data-tags="mineracao lavra pesquisa direitos minerarios DNPM ANM jazidas garimpo" data-cat="mineracao" data-key="mineracao">
+    <article class="card col-12" data-tags="mineracao lavra pesquisa direitos minerarios dnpm anm jazidas garimpo" data-key="mineracao">
       <div class="card-header">
         <div class="title">
           <h3>Mineração</h3>
@@ -332,7 +309,7 @@
     </article>
 
     <!-- OUTROS (exemplo) -->
-    <article class="card col-12" data-tags="outros exemplo modelo placeholder" data-cat="outros" data-key="outros-ex">
+    <article class="card col-12" data-tags="outros exemplo modelo placeholder" data-key="outros-ex">
       <div class="card-header">
         <div class="title">
           <h3>Outros • Exemplo</h3>
@@ -353,7 +330,7 @@
         <iframe id="map-out" src="about:blank" title="Mapa Outros" allowfullscreen allow="fullscreen"></iframe>
         <div class="frame-fallback">Defina o link do mapa em “Configurar link”.</div>
       </div>
-      <div class="note">Você pode duplicar este cartão e mudar o atributo <code>data-cat</code> para criar novos temas.</div>
+      <div class="note">Você pode duplicar este cartão e mudar o atributo <code>data-tags</code> para criar novos temas.</div>
     </article>
   </main>
 
@@ -370,40 +347,20 @@
     // Ano
     document.getElementById('yr').textContent = new Date().getFullYear();
 
-    // Busca + filtro por aba
+    // ===== Busca por texto (sem abas) =====
     const q = document.getElementById('q');
     const cards = [...document.querySelectorAll('.card')];
-    let currentTab = 'todos';
 
-    function applyFilters(){
+    function applySearch(){
       const v = (q.value || '').trim().toLowerCase();
       cards.forEach(c=>{
         const tags = (c.getAttribute('data-tags') || '').toLowerCase();
         const title = c.querySelector('h3')?.textContent.toLowerCase() || '';
-        const cat = c.getAttribute('data-cat') || 'outros';
         const matchText = !v || tags.includes(v) || title.includes(v);
-        const matchTab  = currentTab === 'todos' || cat === currentTab;
-        c.style.display = (matchText && matchTab) ? '' : 'none';
+        c.style.display = matchText ? '' : 'none';
       });
     }
-    q.addEventListener('input', applyFilters);
-
-    // Tabs
-    const tabBtns = [...document.querySelectorAll('.tab')];
-    function setTab(tab){
-      currentTab = tab;
-      tabBtns.forEach(b=> b.setAttribute('aria-selected', b.dataset.tab === tab ? 'true' : 'false'));
-      // opcional: hash para compartilhamento
-      history.replaceState(null, '', '#tab=' + tab);
-      applyFilters();
-    }
-    tabBtns.forEach(b=> b.addEventListener('click', ()=> setTab(b.dataset.tab)));
-    // carrega tab do hash se houver
-    (function initTabFromHash(){
-      const m = location.hash.match(/tab=([a-z0-9\-]+)/i);
-      if(m && document.querySelector(`.tab[data-tab="${m[1]}"]`)) setTab(m[1]);
-      else applyFilters();
-    })();
+    q.addEventListener('input', applySearch);
 
     // Fullscreen
     function goFullscreen(sel){
@@ -426,29 +383,22 @@
       setTimeout(()=>{ if(!done && fb){ fb.style.display='flex'; } }, 9000);
     });
 
-    // Alternar modo claro/escuro (força reflow; respeita prefers-color-scheme quando desligado)
+    // Alternar modo claro/escuro
     document.getElementById('mode').addEventListener('click', ()=>{
       document.documentElement.classList.toggle('force-light');
       if(document.documentElement.classList.contains('force-light')){
         document.documentElement.style.colorScheme = 'light';
       } else {
-        document.documentElement.style.colorScheme = 'dark';
-      }
-      if(!document.documentElement.classList.contains('force-light')){
         document.documentElement.style.colorScheme = '';
       }
     });
 
-    // ====== Cartões configuráveis (Meio Ambiente, Turismo, Mineração, Outros) ======
+    // ===== Cartões configuráveis =====
     const STORAGE_KEY = 'portal_geo_links_v1';
-
-    function loadLinks(){
-      try{ return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); }
-      catch(_){ return {}; }
-    }
+    function loadLinks(){ try{ return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); } catch(_){ return {}; } }
     function saveLinks(map){ localStorage.setItem(STORAGE_KEY, JSON.stringify(map)); }
 
-    function setupConfigurableCards(){
+    (function setupConfigurableCards(){
       const links = loadLinks();
       document.querySelectorAll('.card[data-key]').forEach(card=>{
         const key = card.getAttribute('data-key');
@@ -476,12 +426,18 @@
           }
         }
 
-        // estado inicial
         const saved = links[key];
         if(saved){ input.value = saved; apply(saved); } else { apply(null); }
 
-        btnToggle.addEventListener('click', ()=>{ cfg.style.display = cfg.style.display === 'flex' ? 'none' : 'flex'; cfg.style.display = 'flex'; input.focus(); });
-        btnCancel.addEventListener('click', ()=>{ cfg.style.display = 'none'; input.value = links[key] || ''; });
+        btnToggle.addEventListener('click', ()=>{
+          cfg.style.display = cfg.style.display === 'flex' ? 'none' : 'flex';
+          cfg.style.display = 'flex';
+          input.focus();
+        });
+        btnCancel.addEventListener('click', ()=>{
+          cfg.style.display = 'none';
+          input.value = links[key] || '';
+        });
         btnSave.addEventListener('click', ()=>{
           const url = input.value.trim();
           links[key] = url;
@@ -489,16 +445,11 @@
           apply(url);
           cfg.style.display = 'none';
         });
-        input.addEventListener('keydown', (e)=>{ if(e.key === 'Enter'){ e.preventDefault(); btnSave.click(); } });
+        input.addEventListener('keydown', (e)=>{
+          if(e.key === 'Enter'){ e.preventDefault(); btnSave.click(); }
+        });
       });
-    }
-    setupConfigurableCards();
-
-    // Restaura aba após refresh se hash existir
-    window.addEventListener('hashchange', ()=> {
-      const m = location.hash.match(/tab=([a-z0-9\-]+)/i);
-      if(m && document.querySelector(`.tab[data-tab="${m[1]}"]`)) setTab(m[1]);
-    });
+    })();
   </script>
 </body>
 </html>
