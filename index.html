@@ -150,25 +150,35 @@
       .frame-wrap{ padding-top:56.25% } .frame-wrap.tall{ padding-top:62.5% }
       .frame-wrap > iframe{ position:absolute; inset:0; height:100% }
     }
+    .logo-img {
+  width: 40px;   /* ajuste o tamanho conforme necessário */
+  height: 40px;
+  border-radius: 8px; /* deixa levemente arredondado */
+  object-fit: cover;
+  box-shadow: inset 0 0 0 2px rgba(255,255,255,.12), 0 6px 18px var(--ring);
+}
   </style>
 </head>
 <body>
-  <header class="nav">
-    <div class="brand" title="SEPLAN Piauí">
-      <div class="badge" aria-hidden="true"></div>
-      <div>
-        SEPLAN • Piauí
-        <small>Portal Geoespacial</small>
-      </div>
+<header class="nav">
+  <div class="brand" title="SEPLAN Piauí">
+    <!-- Substituí o quadrado azul pela imagem -->
+    <img src="transferir.jpg" alt="Logo SEPLAN Piauí" class="logo-img" />
+    <div>
+      SEPLAN • Piauí
+      <small>Portal Geoespacial</small>
     </div>
-    <div class="actions">
-      <div class="search">
-        <input id="q" type="search" placeholder="Buscar mapas (ex.: hidro, energia, turismo, mineração)"/>
-        <svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="m21 21-4.2-4.2M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15Z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-      </div>
-          </div>
-  </header>
-
+  </div>
+  <div class="actions">
+    <div class="search">
+      <input id="q" type="search" placeholder="Buscar mapas (ex.: hidro, energia, turismo, mineração)"/>
+      <svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none">
+        <path d="m21 21-4.2-4.2M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15Z"
+          stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </div>
+  </div>
+</header>
   <section class="hero">
     <h1>Mapas temáticos do Piauí</h1>
       </section>
